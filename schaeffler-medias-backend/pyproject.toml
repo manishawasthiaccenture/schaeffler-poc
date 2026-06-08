@@ -1,0 +1,9 @@
+[project]
+name = "schaeffler-medias-backend"
+version = "0.1.0"
+description = "medias conversational ordering assistant — backend (V1)"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -1,0 +1,10 @@
+# Full V1 backend deps. Core domain logic (parsing, mapping, catalog) + tests
+# run on stdlib alone: rapidfuzz is optional (difflib fallback in app/mapping.py).
+fastapi
+uvicorn
+pydantic
+rapidfuzz
+reportlab
+pytest
+httpx        # FastAPI TestClient dependency (test_api.py)
+anthropic    # RealLLMClient — conversational replies (needs ANTHROPIC_API_KEY at runtime)
