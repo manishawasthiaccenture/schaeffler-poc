@@ -18,8 +18,8 @@ from pathlib import Path
 from .. import tools
 from ..formatting import format_eur
 from ..mapping import accepted_lines, map_product, map_products
-from ..models import OrderInfo, ParsedItem, SessionState, TurnResult, WorkflowStep
-from ..parsing import first_product_token, parse_typed_products
+from ..models import MappingStatus, OrderInfo, ParsedItem, SessionState, TurnResult, WorkflowStep
+from ..parsing import extract_quantity, first_product_token, parse_typed_products
 from ..services.interfaces import (
     CartService,
     CatalogService,
@@ -114,6 +114,7 @@ class Orchestrator:
             Intent.PRODUCT_DETAILS: self._product_details,
             Intent.ORDER_DETAILS: self._order_details,
             Intent.ADD_TO_CART: self._add_to_cart,
+            Intent.CHANGE_QTY: self._change_quantity,
             Intent.UPDATE_CART: self._update_cart,
             Intent.REMOVE_CART: self._remove_cart,
             Intent.SHOW_CART: self._show_cart,
@@ -157,7 +158,11 @@ class Orchestrator:
             return self._reply(
                 state, "added_items", message,
                 [tools.cart_payload(cart)],
-                {"item_count": cart.item_count, "total_display": format_eur(cart.total)},
+                {
+                    "item_count": cart.item_count,
+                    "total_display": format_eur(cart.total),
+                    "added": [{"sku": sku, "qty": qty} for sku, qty in accepted],
+                },
             )
 
         # Initial review mode: accumulate items typed before the quote.
@@ -181,6 +186,14 @@ class Orchestrator:
         entry = self._catalog.get(result.matched_sku) if result.matched_sku else None
         if entry is None:
             return self._reply(state, "product_details_missing", message, [])
+        # The input isn't itself a Schaeffler product (it resolved via cross-reference/fuzzy):
+        # name the Schaeffler equivalent and ask before showing its details.
+        if result.status is MappingStatus.MAPPED:
+            return self._reply(
+                state, "product_equivalent", message,
+                [tools.equivalent_prompt_payload(result.raw, entry)],
+                {"raw": result.raw, "sku": entry.schaeffler_sku, "description": entry.description},
+            )
         return self._reply(
             state, "product_details", message,
             [tools.product_details_payload(entry)],
@@ -201,11 +214,70 @@ class Orchestrator:
         entry = self._catalog.get(sku) if sku else None
         if entry is None:
             return self._reply(state, "product_details_missing", message, [])
+        # Already in the cart: confirm before adding again, and let the user pick a quantity.
+        if not payload.get("confirm_add"):
+            existing = next(
+                (i for i in self._carts.get_cart(state.conversation_id).items
+                 if i.sku == entry.schaeffler_sku),
+                None,
+            )
+            if existing is not None:
+                return self._reply(
+                    state, "already_in_cart", message,
+                    [tools.already_in_cart_payload(entry, existing.qty)],
+                    {"sku": entry.schaeffler_sku, "current_qty": existing.qty},
+                )
         cart = self._merge_into_cart(state, [(entry.schaeffler_sku, qty)])
         return self._reply(
             state, "added_items", message,
             [tools.cart_payload(cart)],
-            {"item_count": cart.item_count, "total_display": format_eur(cart.total)},
+            {
+                "item_count": cart.item_count,
+                "total_display": format_eur(cart.total),
+                "added": [{"sku": entry.schaeffler_sku, "qty": qty}],
+            },
+        )
+
+    def _change_quantity(self, state: SessionState, message: str, payload: dict) -> TurnResult:
+        """Apply a free-text quantity change to a cart line (e.g. "make it 20", "add 20 more").
+
+        Resolves the target SKU from a typed product code, or the sole cart line when there's
+        only one. "add"/"more" adds to the current quantity; otherwise the quantity is set.
+        """
+        cart = self._carts.get_cart(state.conversation_id)
+        if not cart.items:
+            return self._reply(state, "cart_empty", message, [tools.cart_payload(cart)])
+
+        qty = extract_quantity(message)
+        if qty is None:
+            return self._reply(state, "qty_unclear", message, [tools.cart_payload(cart)])
+
+        token = first_product_token(message)
+        sku = map_product(ParsedItem(raw=token, qty=1), self._catalog).matched_sku if token else None
+        if sku is None or not any(i.sku == sku for i in cart.items):
+            if len(cart.items) == 1:
+                sku = cart.items[0].sku
+            else:
+                return self._reply(
+                    state, "which_item", message, [tools.cart_payload(cart)],
+                    {"items": [i.sku for i in cart.items]},
+                )
+
+        norm = message.lower()
+        if any(w in norm for w in ("add", "more", "another", "additional", "extra")) and qty > 0:
+            cart = self._carts.add_to_cart(state.conversation_id, [(sku, qty)])
+        else:
+            cart = self._carts.update_cart_item(state.conversation_id, sku, qty)
+
+        item = next((i for i in cart.items if i.sku == sku), None)
+        return self._reply(
+            state, "qty_updated", message, [tools.cart_payload(cart)],
+            {
+                "sku": sku,
+                "qty": item.qty if item else 0,
+                "item_count": cart.item_count,
+                "total_display": format_eur(cart.total),
+            },
         )
 
     def _update_cart(self, state: SessionState, message: str, payload: dict) -> TurnResult:

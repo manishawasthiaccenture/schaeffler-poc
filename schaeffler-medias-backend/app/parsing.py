@@ -45,6 +45,23 @@ def first_product_token(text: str) -> str | None:
     return None
 
 
+def extract_quantity(text: str) -> int | None:
+    """Pull a quantity out of free text (e.g. "make it 20", "20 units", "qty 3").
+
+    Any product-code token is removed first so the code's own digits aren't read
+    as the quantity. Returns None when no number is present.
+    """
+    code = first_product_token(text)
+    remainder = text.replace(code, " ", 1) if code else text
+    m = _QTY_KEYWORD.search(remainder)
+    if m:
+        return int(m.group(1))
+    m = _QTY_BARE.search(remainder)
+    if m:
+        return int(m.group(1))
+    return None
+
+
 def parse_typed_products(text: str) -> list[ParsedItem]:
     """Parse a multi-line product list into ParsedItems. Blank lines are ignored."""
     items: list[ParsedItem] = []

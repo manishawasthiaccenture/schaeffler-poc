@@ -12,11 +12,12 @@ The orchestrator depends only on LLMClient.
 from __future__ import annotations
 
 import os
+import re
 from abc import ABC, abstractmethod
 from enum import Enum
 
 from ..models import WorkflowStep
-from ..parsing import looks_like_products
+from ..parsing import extract_quantity, looks_like_products
 
 
 class Intent(str, Enum):
@@ -29,6 +30,7 @@ class Intent(str, Enum):
     PRODUCT_DETAILS = "product_details"
     ORDER_DETAILS = "order_details"
     ADD_TO_CART = "add_to_cart"
+    CHANGE_QTY = "change_qty"
     UPDATE_CART = "update_cart"
     REMOVE_CART = "remove_cart"
     SHOW_CART = "show_cart"
@@ -49,6 +51,11 @@ _QUOTE = {
 _DECLINE = {"decline all and remove from list", "decline all", "decline"}
 _PROCEED = {"proceed to checkout", "proceed", "checkout"}
 _PLACE = {"place order", "place the order"}
+# Words that, alongside a number in a cart step, signal a free-text quantity change.
+_QTY_CUES = (
+    "unit", "qty", "quantity", "piece", "pcs", "make it", "set ", "change",
+    "update", "increase", "decrease", "reduce", "more", "add", "want", "need",
+)
 
 
 def route_intent(message: str, step: WorkflowStep) -> Intent:
@@ -102,9 +109,27 @@ def route_intent(message: str, step: WorkflowStep) -> Intent:
     ):
         return Intent.PRODUCT_DETAILS
 
+    # A bare product code typed while a cart/quote already exists -> look it up and ask,
+    # rather than silently adding it. (A code WITH a quantity, e.g. "6204-C-22 x 5", or a
+    # multi-line list still means "add these" and falls through to SUBMIT_PRODUCTS below.)
+    if step in (WorkflowStep.QUOTE_READY, WorkflowStep.CART_REVIEW, WorkflowStep.CHECKOUT):
+        if (
+            looks_like_products(message)
+            and "\n" not in message.strip()
+            and extract_quantity(message) is None
+        ):
+            return Intent.PRODUCT_DETAILS
+
     # Anything that contains a product-code-like token is product input (submit/add).
     if looks_like_products(message):
         return Intent.SUBMIT_PRODUCTS
+
+    # Free-text quantity change against an existing cart, with no product code typed
+    # (e.g. "make it 20", "20 units", "add 20 more", "set quantity to 20"). Handled
+    # deterministically so the cart actually changes — the LLM only phrases the result.
+    if step in (WorkflowStep.QUOTE_READY, WorkflowStep.CART_REVIEW, WorkflowStep.CHECKOUT):
+        if re.search(r"\d", norm) and any(cue in norm for cue in _QTY_CUES):
+            return Intent.CHANGE_QTY
 
     if step == WorkflowStep.AWAITING_MAPPING_REVIEW and "quote" in norm:
         return Intent.REQUEST_QUOTE
@@ -153,7 +178,17 @@ def default_reply(kind: str, facts: dict | None = None) -> str:
             "I couldn't find that product in our catalog. Please double-check the code and try again."
         ),
         "cart_empty": "Your cart is empty. Add some products and they'll show up here.",
+        "qty_unclear": "I couldn't tell what quantity you meant — tell me the number, e.g. \"make it 20\".",
+        "which_item": (
+            "Which product would you like to change? You can use the +/- controls on each cart "
+            "line, or tell me the product code and the quantity."
+        ),
     }
+    if kind == "qty_updated":
+        return (
+            f"Done — {f.get('sku', 'that item')} is now set to {f.get('qty', 0)} unit(s) in your cart. "
+            f"Your cart total is {f.get('total_display', '')}. Ready to proceed to checkout?"
+        )
     if kind == "mapping_ready":
         recognized, mapped, no_eq = f.get("recognized", 0), f.get("mapped", 0), f.get("no_eq", 0)
         parts = []
@@ -165,6 +200,17 @@ def default_reply(kind: str, facts: dict | None = None) -> str:
             parts.append(f"{no_eq} with no direct equivalent")
         summary = ", ".join(parts) if parts else "your items"
         return f"I've reviewed your list — {summary}. Please confirm on the right to continue."
+    if kind == "product_equivalent":
+        return (
+            f"{f.get('raw', 'That item')} isn't a Schaeffler designation, but it maps to the "
+            f"Schaeffler equivalent {f.get('sku', '')} ({f.get('description', '')}). "
+            "Would you like to see its product details?"
+        )
+    if kind == "already_in_cart":
+        return (
+            f"{f.get('sku', 'That item')} is already in your cart (quantity {f.get('current_qty', 0)}). "
+            "Would you like to add it again? Choose a quantity on the right and confirm."
+        )
     if kind == "order_recap":
         return f"Your order {f.get('order_id', '')} is confirmed. Anything else I can help you with?"
     if kind == "stub":
@@ -221,9 +267,17 @@ _SYSTEM_PROMPT = (
     "STRICT RULES: never invent or change prices, totals, quote IDs, order numbers, dates, "
     "SKUs, or mapping results — only reference values present in FACTS. Do not use markdown, "
     "bullet lists, or code formatting. "
+    "NEVER claim you have changed a quantity, added or removed a cart item, created a quote, or "
+    "placed an order unless the FACTS for this turn show that result. If you can't do what the "
+    "customer asked, say so plainly and tell them how — e.g. use the +/- controls on the cart, or "
+    "restate the product and quantity — rather than pretending it was done. "
     "A product with status 'matched' is already a Schaeffler product and is ready to order — "
     "never say it has no equivalent and never offer alternatives for it. Only mention 'no direct "
     "equivalent' or suggest alternatives for items whose status is 'no_equivalent'. "
+    "When the situation is 'product_equivalent', the customer's input is a non-Schaeffler designation "
+    "that maps to the Schaeffler equivalent in FACTS — name that equivalent SKU and ask whether they'd "
+    "like to see its product details. When the situation is 'already_in_cart', tell the customer the item "
+    "is already in their cart at the quantity in FACTS and ask if they want to add it again, and at what quantity. "
     "If the situation is 'unknown', answer briefly and gently steer the customer toward placing an order."
 )
 

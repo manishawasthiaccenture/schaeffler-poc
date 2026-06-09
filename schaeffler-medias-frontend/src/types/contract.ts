@@ -9,6 +9,8 @@ export type UIComponentName =
   | "CheckoutForm"
   | "Confirmation"
   | "ProductDetails"
+  | "EquivalentPrompt"
+  | "AlreadyInCart"
   | "StubMessage";
 
 export interface UIPayload<T = unknown> {
@@ -107,6 +109,18 @@ export interface ProductDetailsData {
   price_tiers: { range: string; unit_price_display: string }[];
   from_price_display: string | null;
   attributes: Record<string, string | number | boolean>;
+}
+
+export interface EquivalentPromptData {
+  raw: string;
+  sku: string;
+  description: string;
+}
+
+export interface AlreadyInCartData {
+  sku: string;
+  description: string;
+  current_qty: number;
 }
 
 export interface StubMessageData {

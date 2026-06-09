@@ -9,6 +9,8 @@ import { Cart } from "./Cart";
 import { CheckoutForm } from "./CheckoutForm";
 import { Confirmation } from "./Confirmation";
 import { ProductDetails } from "./ProductDetails";
+import { EquivalentPrompt } from "./EquivalentPrompt";
+import { AlreadyInCart } from "./AlreadyInCart";
 import { StubMessage } from "./StubMessage";
 
 // component name (from the backend §10 payload) -> React widget.
@@ -21,6 +23,8 @@ const registry: Record<string, FC<WidgetProps<never>>> = {
   CheckoutForm,
   Confirmation,
   ProductDetails,
+  EquivalentPrompt,
+  AlreadyInCart,
   StubMessage,
 };
 

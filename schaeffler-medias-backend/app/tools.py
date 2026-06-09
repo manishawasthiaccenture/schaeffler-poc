@@ -165,5 +165,29 @@ def product_details_payload(entry: CatalogEntry) -> dict:
     }
 
 
+def equivalent_prompt_payload(raw: str, entry: CatalogEntry) -> dict:
+    """Customer designation -> Schaeffler equivalent, asking before showing details."""
+    return {
+        "component": "EquivalentPrompt",
+        "data": {
+            "raw": raw,
+            "sku": entry.schaeffler_sku,
+            "description": entry.description,
+        },
+    }
+
+
+def already_in_cart_payload(entry: CatalogEntry, current_qty: int) -> dict:
+    """Confirm prompt for adding an item that's already in the cart, with a quantity to add."""
+    return {
+        "component": "AlreadyInCart",
+        "data": {
+            "sku": entry.schaeffler_sku,
+            "description": entry.description,
+            "current_qty": current_qty,
+        },
+    }
+
+
 def stub_payload(title: str, message: str) -> dict:
     return {"component": "StubMessage", "data": {"title": title, "message": message}}
