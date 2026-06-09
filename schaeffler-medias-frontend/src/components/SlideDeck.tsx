@@ -3,10 +3,10 @@ import type { WidgetProps } from "./widget";
 import type { SlideDeckData, SlideData } from "../types/contract";
 import { slideUrl } from "../api/client";
 
-// Proposal slides for an RFQ topic, shown with a Ken Burns effect: each slide slowly
-// zooms and pans while displayed. A single slide just animates; multiple slides
-// crossfade from one Ken Burns shot to the next, auto-advancing, with prev/next + dots.
-// A missing image (404) falls back to a labelled placeholder.
+// Proposal slides for an RFQ topic, shown as a 3D cover-flow: the active slide faces
+// front while neighbours angle back to either side. Auto-advances; side slides,
+// chevrons and dots all navigate. A single slide just renders flat. A missing image
+// (404) falls back to a labelled placeholder.
 export function SlideDeck({ data }: WidgetProps<SlideDeckData>) {
   const slides = data.slides ?? [];
   const [idx, setIdx] = useState(0);
@@ -15,10 +15,10 @@ export function SlideDeck({ data }: WidgetProps<SlideDeckData>) {
   // Reset to the first slide whenever the set of slides changes (new answer).
   useEffect(() => setIdx(0), [key]);
 
-  // Auto-advance through the slides.
+  // Auto-advance the cover-flow.
   useEffect(() => {
     if (slides.length < 2) return;
-    const t = setInterval(() => setIdx((i) => (i + 1) % slides.length), 5000);
+    const t = setInterval(() => setIdx((i) => (i + 1) % slides.length), 4500);
     return () => clearInterval(t);
   }, [key, slides.length]);
 
@@ -26,8 +26,8 @@ export function SlideDeck({ data }: WidgetProps<SlideDeckData>) {
 
   if (slides.length === 1) {
     return (
-      <div className="relative aspect-video overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-white">
-        <Slide slide={slides[0]} variant={0} />
+      <div className="rounded-lg border border-gray-200 shadow-sm bg-white overflow-hidden">
+        <Slide slide={slides[0]} flat />
       </div>
     );
   }
@@ -36,18 +36,41 @@ export function SlideDeck({ data }: WidgetProps<SlideDeckData>) {
 
   return (
     <div>
-      <div className="relative aspect-video overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-white">
-        {slides.map((s, i) => (
-          <div
-            key={s.image}
-            aria-hidden={i !== idx}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              i === idx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-            }`}
-          >
-            <Slide slide={s} variant={i} />
-          </div>
-        ))}
+      <div
+        className="relative aspect-video overflow-hidden rounded-lg"
+        style={{ perspective: "1200px" }}
+      >
+        <div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }}>
+          {slides.map((s, i) => {
+            const offset = i - idx;
+            const abs = Math.abs(offset);
+            const active = offset === 0;
+            // Center each card (translate -50%,-50%), then fan neighbours out in 3D.
+            const transform =
+              `translate(-50%, -50%) translateX(${offset * 52}%) ` +
+              `translateZ(${active ? 0 : -160}px) ` +
+              `rotateY(${active ? 0 : offset < 0 ? 42 : -42}deg) ` +
+              `scale(${active ? 1 : 0.82})`;
+            return (
+              <div
+                key={s.image}
+                onClick={() => !active && go(i)}
+                aria-hidden={!active}
+                className="absolute top-1/2 left-1/2 w-[95%] aspect-video transition-all duration-500 ease-out"
+                style={{
+                  transform,
+                  zIndex: 100 - abs,
+                  opacity: abs > 2 ? 0 : 1,
+                  pointerEvents: abs > 2 ? "none" : "auto",
+                  cursor: active ? "default" : "pointer",
+                  filter: active ? "none" : "brightness(0.7)",
+                }}
+              >
+                <Slide slide={s} />
+              </div>
+            );
+          })}
+        </div>
         <NavButton side="left" onClick={() => go(idx - 1)} />
         <NavButton side="right" onClick={() => go(idx + 1)} />
       </div>
@@ -68,26 +91,43 @@ export function SlideDeck({ data }: WidgetProps<SlideDeckData>) {
   );
 }
 
-function Slide({ slide, variant }: { slide: SlideData; variant: number }) {
+// `flat` renders the natural-aspect image (single-slide case); otherwise the slide
+// fills its cover-flow card.
+function Slide({ slide, flat = false }: { slide: SlideData; flat?: boolean }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-center p-8">
+      <div
+        className={`flex flex-col items-center justify-center bg-gray-50 text-center p-8 ${
+          flat ? "aspect-video" : "w-full h-full rounded-lg border border-gray-200"
+        }`}
+      >
         <p className="text-sm text-gray-500">{slide.label}</p>
         <p className="text-xs text-gray-400 mt-1">Slide image not available</p>
       </div>
     );
   }
-  // Alternate the Ken Burns direction per slide so a crossfade stays dynamic.
-  const kb = variant % 2 === 0 ? "ken-burns-a" : "ken-burns-b";
+  if (flat) {
+    return (
+      <img
+        src={slideUrl(slide.image)}
+        alt={slide.label}
+        loading="lazy"
+        className="block w-full h-auto"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
   return (
-    <img
-      src={slideUrl(slide.image)}
-      alt={slide.label}
-      loading="lazy"
-      className={`w-full h-full object-cover ${kb}`}
-      onError={() => setFailed(true)}
-    />
+    <div className="w-full h-full rounded-lg overflow-hidden border border-gray-200 shadow-xl bg-white">
+      <img
+        src={slideUrl(slide.image)}
+        alt={slide.label}
+        loading="lazy"
+        className="w-full h-full object-contain"
+        onError={() => setFailed(true)}
+      />
+    </div>
   );
 }
 
@@ -96,7 +136,7 @@ function NavButton({ side, onClick }: { side: "left" | "right"; onClick: () => v
     <button
       aria-label={side === "left" ? "Previous slide" : "Next slide"}
       onClick={onClick}
-      className={`absolute top-1/2 -translate-y-1/2 z-20 ${side === "left" ? "left-2" : "right-2"}
+      className={`absolute top-1/2 -translate-y-1/2 z-[200] ${side === "left" ? "left-2" : "right-2"}
         w-8 h-8 rounded-full bg-white/80 hover:bg-white shadow flex items-center justify-center
         text-gray-700 transition`}
     >

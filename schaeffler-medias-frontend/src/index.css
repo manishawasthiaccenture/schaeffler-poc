@@ -11,21 +11,3 @@ body,
 body {
   @apply bg-gray-200 text-gray-900 antialiased;
 }
-
-/* Ken Burns: slow continuous zoom + pan for proposal slides. Two variants give
-   adjacent slides opposite motion so a crossfade between them stays lively. */
-@keyframes kenburns-a {
-  from { transform: scale(1) translate(0, 0); }
-  to   { transform: scale(1.09) translate(-2%, -1.5%); }
-}
-@keyframes kenburns-b {
-  from { transform: scale(1.09) translate(2%, 1.5%); }
-  to   { transform: scale(1) translate(0, 0); }
-}
-.ken-burns-a { animation: kenburns-a 12s ease-in-out infinite alternate; }
-.ken-burns-b { animation: kenburns-b 12s ease-in-out infinite alternate; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ken-burns-a,
-  .ken-burns-b { animation: none; }
-}
