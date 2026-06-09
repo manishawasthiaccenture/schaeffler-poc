@@ -56,7 +56,7 @@ export function SlideDeck({ data }: WidgetProps<SlideDeckData>) {
                 key={s.image}
                 onClick={() => !active && go(i)}
                 aria-hidden={!active}
-                className="absolute top-1/2 left-1/2 w-[95%] aspect-video transition-all duration-500 ease-out"
+                className="absolute top-1/2 left-1/2 w-[93%] aspect-video transition-all duration-500 ease-out"
                 style={{
                   transform,
                   zIndex: 100 - abs,
