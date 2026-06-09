@@ -50,7 +50,12 @@ def test_message_streams_text_ui_done():
     assert any(
         e["type"] == "ui" and e["payload"]["component"] == "UploadWidget" for e in events
     )
-    assert events[-1] == {"type": "done", "step": "awaiting_products"}
+    assert events[-1] == {
+        "type": "done",
+        "step": "awaiting_products",
+        "mode": "order",
+        "suggestions": [],
+    }
 
 
 def test_state_endpoint_tracks_workflow():

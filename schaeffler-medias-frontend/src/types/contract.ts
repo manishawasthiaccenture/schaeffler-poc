@@ -11,7 +11,8 @@ export type UIComponentName =
   | "ProductDetails"
   | "EquivalentPrompt"
   | "AlreadyInCart"
-  | "StubMessage";
+  | "StubMessage"
+  | "SlideDeck";
 
 export interface UIPayload<T = unknown> {
   component: UIComponentName;
@@ -128,7 +129,29 @@ export interface StubMessageData {
   message: string;
 }
 
+// Proposal Q&A: slides shown in the side panel for an RFQ topic.
+// `image` is the served image stem (e.g. "orals-6"); see GET /slides/{image}.jpg.
+export interface SlideData {
+  image: string;
+  label: string;
+}
+
+export interface SlideDeckData {
+  slides: SlideData[];
+}
+
+// A clickable suggestion chip. `intent` is set for proposal topic drill-downs
+// (posted back as the `intent` field); follow-up questions send `message` as text.
+export interface Suggestion {
+  label: string;
+  message: string;
+  intent: string | null;
+}
+
+// Which engine produced a turn — drives chip handling and rich-text rendering.
+export type TurnMode = "order" | "proposal";
+
 export type SSEEvent =
   | { type: "text"; text: string }
   | { type: "ui"; payload: UIPayload }
-  | { type: "done"; step: string };
+  | { type: "done"; step: string; mode?: TurnMode; suggestions?: Suggestion[] };
