@@ -13,9 +13,10 @@ interface Props {
   onSelectMenu?: (item: MenuItem) => void;
   cartCount?: number;
   onShowCart?: () => void;
+  onNewChat?: () => void;
 }
 
-export function SubHeader({ menu = [], activeMenu, onSelectMenu, cartCount = 0, onShowCart }: Props) {
+export function SubHeader({ menu = [], activeMenu, onSelectMenu, cartCount = 0, onShowCart, onNewChat }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -24,7 +25,12 @@ export function SubHeader({ menu = [], activeMenu, onSelectMenu, cartCount = 0, 
         <button aria-label="Menu" className="hover:text-gray-900" onClick={() => setOpen((o) => !o)}>
           <MenuIcon className="w-5 h-5" />
         </button>
-        <button aria-label="New chat" className="hover:text-gray-900">
+        <button
+          aria-label="New chat"
+          title="Back to home"
+          className="hover:text-gray-900"
+          onClick={onNewChat}
+        >
           <ComposeIcon className="w-5 h-5" />
         </button>
       </div>

@@ -12,6 +12,7 @@ import { ProductDetails } from "./ProductDetails";
 import { EquivalentPrompt } from "./EquivalentPrompt";
 import { AlreadyInCart } from "./AlreadyInCart";
 import { StubMessage } from "./StubMessage";
+import { SlideDeck } from "./SlideDeck";
 
 // component name (from the backend §10 payload) -> React widget.
 const registry: Record<string, FC<WidgetProps<never>>> = {
@@ -26,6 +27,7 @@ const registry: Record<string, FC<WidgetProps<never>>> = {
   EquivalentPrompt,
   AlreadyInCart,
   StubMessage,
+  SlideDeck,
 };
 
 export function renderWidget(payload: UIPayload, send: SendFn) {

@@ -191,3 +191,8 @@ def already_in_cart_payload(entry: CatalogEntry, current_qty: int) -> dict:
 
 def stub_payload(title: str, message: str) -> dict:
     return {"component": "StubMessage", "data": {"title": title, "message": message}}
+
+
+def slide_deck_payload(slides: list[dict]) -> dict:
+    """Proposal slides shown in the side panel ([{page, label}, ...])."""
+    return {"component": "SlideDeck", "data": {"slides": slides}}
