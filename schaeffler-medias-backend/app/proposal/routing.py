@@ -24,10 +24,11 @@ RAG_MIN = float(os.getenv("PROPOSAL_RAG_MIN", "0.20"))
 # (intent, [regex, ...]) — first match wins, evaluated top to bottom. Order matters:
 # the most specific topics are checked before the general "realize the vision" catch.
 INTENT_PATTERNS: list[tuple[str, list[str]]] = [
-    ("why_accenture",  [r"why accenture", r"suitable partner", r"right partner", r"why acn",
-                        r"makes accenture", r"why.*choose", r"trusted partner", r"unique.*position"]),
-    ("credentials",    [r"done.*before", r"credential", r"experience", r"reference", r"case stud",
-                        r"past project", r"proven", r"track record"]),
+    ("proven_partner", [r"why accenture", r"suitable partner", r"right partner", r"why acn",
+                        r"makes accenture", r"why.*choose", r"trusted partner", r"unique.*position",
+                        r"done.*before", r"delivered.*similar", r"similar.*initiative", r"credential",
+                        r"experience", r"reference", r"case stud", r"past project", r"proven",
+                        r"track record", r"execute this engagement"]),
     ("collaboration",  [r"collaborat", r"staff", r"how.*work.*together", r"team.*setup", r"team proposal",
                         r"on.?shore", r"offshore", r"raci", r"working model", r"who.*on.*team", r"shoring"]),
     ("approach",       [r"approach", r"what.*will.*they.*do", r"what.*do.*to.*realize", r"now that we know",

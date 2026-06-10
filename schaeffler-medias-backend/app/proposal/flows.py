@@ -59,7 +59,7 @@ FLOWS: dict[str, dict] = {
     },
 
     # 2) Now that we know what we want to realize — what's the Accenture approach and
-    #    what will they do? -> ORALS slides 9, 10, 12, 18 & 20.
+    #    what will they do? -> ORALS slides 9, 10, 12, 18 & 21.
     "approach": {
         "text": (
             "Accenture delivers in <strong>four phases to one hard deadline — GISM in "
@@ -75,7 +75,7 @@ FLOWS: dict[str, dict] = {
             {"image": "orals-10", "label": "Discovery & Design — six weeks to eliminate every build-phase blocker"},
             {"image": "orals-12", "label": "Build — 14 weeks of agile delivery across all 12 services"},
             {"image": "orals-18", "label": "Test — SIT confirms it works, UAT confirms it's right for the business"},
-            {"image": "orals-20", "label": "Hypercare — four weeks of dedicated post-launch support"},
+            {"image": "orals-21", "label": "Hypercare — four weeks of dedicated post-launch support"},
         ],
         "aliases": [
             "Now that we know what we want to realize, what's the Accenture approach and what will they do to realize this?",
@@ -86,7 +86,7 @@ FLOWS: dict[str, dict] = {
     },
 
     # 3) How would Accenture collaborate with us / staff this project?
-    #    -> ORALS slides 21 & 22.
+    #    -> ORALS slides 22 & 23.
     "collaboration": {
         "text": (
             "Accenture proposes a <strong>phased shoring model</strong>: onshore-heavy "
@@ -98,8 +98,8 @@ FLOWS: dict[str, dict] = {
             "Accenture steering structure."
         ),
         "slides": [
-            {"image": "orals-21", "label": "Delivery Model — Phased Shoring Approach"},
-            {"image": "orals-22", "label": "One delivery team — local proximity with global specialist scale"},
+            {"image": "orals-22", "label": "Delivery Model — Phased Shoring Approach"},
+            {"image": "orals-23", "label": "One delivery team — local proximity with global specialist scale"},
         ],
         "aliases": [
             "And how would Accenture collaborate with us? How would they staff this project?",
@@ -109,51 +109,35 @@ FLOWS: dict[str, dict] = {
         ],
     },
 
-    # 4) Has Accenture done this before? -> ORALS slides 23 & 24.
-    "credentials": {
+    # 4) Has Accenture delivered similar initiatives before, and what makes it the
+    #    right partner to execute this engagement? -> ORALS slides 24-29.
+    "proven_partner": {
         "text": (
             "Yes — Accenture is the <strong>#1 partner to enterprises building "
-            "production-grade agentic AI</strong>, with 2,000+ GenAI projects delivered, "
-            "a Microsoft/Azure strategic alliance, the AI Refinery enterprise agentic "
-            "platform and $3B invested in AI. We bring <strong>five directly comparable "
-            "credentials</strong> — including a live GenAI travel companion on Azure "
-            "OpenAI handling ~300k sessions/month — scored against Schaeffler's exact "
-            "capability requirements."
+            "production-grade agentic AI</strong> (2,000+ GenAI projects, a Microsoft/Azure "
+            "alliance, the AI Refinery platform, $3B invested), and brings <strong>five "
+            "directly comparable credentials</strong> — including a live GenAI travel "
+            "companion on Azure OpenAI at ~300k sessions/month. And it's the right partner "
+            "to execute this: a <strong>trusted partner with less ramp-up and more delivery "
+            "from day one</strong>, work <strong>built on real delivery, not prototypes</strong>, "
+            "backed by unmatched AI capabilities, reinvention leadership and a deep global "
+            "ecosystem (1,600+ GenAI professionals, 1,450 patents, recognised leader by "
+            "Forrester and Everest Group)."
         ),
         "slides": [
-            {"image": "orals-23", "label": "The #1 partner to enterprises building production-grade agentic AI"},
-            {"image": "orals-24", "label": "Five comparable credentials scored against Schaeffler's requirements"},
+            {"image": "orals-24", "label": "The #1 partner to enterprises building production-grade agentic AI"},
+            {"image": "orals-25", "label": "Five comparable credentials scored against Schaeffler's requirements"},
+            {"image": "orals-26", "label": "A trusted partner — less ramp-up, more delivery from day one"},
+            {"image": "orals-27", "label": "Built on real delivery, not prototypes"},
+            {"image": "orals-28", "label": "Unmatched AI capabilities, reinvention leadership and industry expertise"},
+            {"image": "orals-29", "label": "AI leadership, accomplishments and global partner ecosystem"},
         ],
         "aliases": [
-            "Has Accenture done this before?",
-            "What is your experience and track record?",
-            "Show me comparable credentials and case studies.",
-            "proven references",
-        ],
-    },
-
-    # 5) What makes Accenture a suitable partner? -> ORALS slides 25, 26, 27 & 28.
-    "why_accenture": {
-        "text": (
-            "Accenture is a <strong>trusted partner — less ramp-up, more delivery from "
-            "day one</strong>: a dedicated senior account team, deep Schaeffler knowledge, "
-            "and #1-partner power across your cloud and software ecosystem. Our work is "
-            "<strong>built on real delivery, not prototypes</strong> — proven Super Agents "
-            "and broad platform/protocol coverage — backed by unmatched AI capabilities, "
-            "reinvention leadership and industry expertise (1,600+ GenAI professionals, "
-            "1,450 patents, recognised leader by Forrester and Everest Group)."
-        ),
-        "slides": [
-            {"image": "orals-25", "label": "A trusted partner — less ramp-up, more delivery from day one"},
-            {"image": "orals-26", "label": "Built on real delivery, not prototypes"},
-            {"image": "orals-27", "label": "Unmatched AI capabilities, reinvention leadership and industry expertise"},
-            {"image": "orals-28", "label": "AI leadership, accomplishments and global partner ecosystem"},
-        ],
-        "aliases": [
-            "What makes Accenture a suitable partner?",
-            "Why Accenture? Why choose Accenture?",
-            "What makes you the right partner?",
-            "unique position, AI leadership",
+            "Has Accenture delivered similar initiatives in the past, and what makes Accenture the right partner to successfully execute this engagement?",
+            "Has Accenture done this before? What makes Accenture the right partner?",
+            "What is your experience, track record and credentials?",
+            "What makes Accenture a suitable partner? Why Accenture?",
+            "proven references, case studies, AI leadership, unique position",
         ],
     },
 

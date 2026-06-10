@@ -24,25 +24,24 @@ def test_approach_question():
         "and what will they do to realize this?"
     )
     assert reply.intent == "approach"
-    assert [s["image"] for s in reply.slides] == ["orals-9", "orals-10", "orals-12", "orals-18", "orals-20"]
+    assert [s["image"] for s in reply.slides] == ["orals-9", "orals-10", "orals-12", "orals-18", "orals-21"]
 
 
 def test_collaboration_question():
     reply = svc.answer("And how would Accenture collaborate with us? How would they staff this project?")
     assert reply.intent == "collaboration"
-    assert [s["image"] for s in reply.slides] == ["orals-21", "orals-22"]
+    assert [s["image"] for s in reply.slides] == ["orals-22", "orals-23"]
 
 
-def test_credentials_question():
-    reply = svc.answer("Has Accenture done this before?")
-    assert reply.intent == "credentials"
-    assert [s["image"] for s in reply.slides] == ["orals-23", "orals-24"]
-
-
-def test_why_accenture_question():
-    reply = svc.answer("What makes Accenture a suitable partner?")
-    assert reply.intent == "why_accenture"
-    assert [s["image"] for s in reply.slides] == ["orals-25", "orals-26", "orals-27", "orals-28"]
+def test_proven_partner_question():
+    reply = svc.answer(
+        "Has Accenture delivered similar initiatives in the past, and what makes "
+        "Accenture the right partner to successfully execute this engagement?"
+    )
+    assert reply.intent == "proven_partner"
+    assert [s["image"] for s in reply.slides] == [
+        "orals-24", "orals-25", "orals-26", "orals-27", "orals-28", "orals-29",
+    ]
 
 
 # --- behaviour: no chips, no refusal --------------------------------------------
