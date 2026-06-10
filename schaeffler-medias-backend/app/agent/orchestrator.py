@@ -67,6 +67,11 @@ class Orchestrator:
         self._quotes = quotes
         self._carts = carts
         self._orders = orders
+        self._po_counter = 0  # sequential prefill: SCHAMA0001, SCHAMA0002, ...
+
+    def _next_po_number(self) -> str:
+        self._po_counter += 1
+        return f"SCHAMA{self._po_counter:04d}"
 
     def create_conversation(self) -> str:
         return self._sessions.create().conversation_id
@@ -333,7 +338,12 @@ class Orchestrator:
 
         if state.step == WorkflowStep.CART_REVIEW:
             state.step = WorkflowStep.CHECKOUT
-            return self._reply(state, "checkout", message, [tools.checkout_form_payload()])
+            # Prefill the PO number once per order (stable if the form re-renders).
+            if not state.po_prefill:
+                state.po_prefill = self._next_po_number()
+            return self._reply(
+                state, "checkout", message, [tools.checkout_form_payload(state.po_prefill)]
+            )
 
         return self._reply(state, "proceed_nothing", message, [])
 
@@ -343,7 +353,7 @@ class Orchestrator:
 
         po_number = (payload.get("purchase_order_number") or "").strip()
         if not po_number:
-            return self._reply(state, "need_po", message, [tools.checkout_form_payload()])
+            return self._reply(state, "need_po", message, [tools.checkout_form_payload(state.po_prefill)])
 
         order_info = OrderInfo(
             purchase_order_number=po_number,
@@ -370,6 +380,7 @@ class Orchestrator:
         state.quote_id = None
         state.order_info = None
         state.order_id = None
+        state.po_prefill = None  # next order gets a fresh PO number
         self._carts.clear_cart(state.conversation_id)
 
     def _cart_control(self, state: SessionState) -> TurnResult:

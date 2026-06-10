@@ -1,12 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { WidgetProps } from "./widget";
 import type { CheckoutFormData } from "../types/contract";
 import { CheckIcon } from "../shell/icons";
 
 export function CheckoutForm({ data, send }: WidgetProps<CheckoutFormData>) {
-  const [po, setPo] = useState("");
-  const [orderType, setOrderType] = useState("");
+  const prefillPo = data.fields.purchase_order_number.value ?? "";
+  const [po, setPo] = useState(prefillPo);
+  const [orderType, setOrderType] = useState(data.fields.order_type.default ?? "Standard");
   const [comment, setComment] = useState("");
+
+  // Re-sync the prefilled PO when it changes (e.g. a new order's SCHAMA00NN), since
+  // the panel may reuse this component instance across orders.
+  useEffect(() => setPo(prefillPo), [prefillPo]);
 
   const fields = data.fields;
   const canPlaceOrder = po.trim().length > 0; // FR-7: PO number required

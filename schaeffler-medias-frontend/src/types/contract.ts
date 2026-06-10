@@ -87,8 +87,8 @@ export interface CartData {
 
 export interface CheckoutFormData {
   fields: {
-    purchase_order_number: { label: string; required: boolean; max_length: number };
-    order_type: { label: string; type: string; options: string[] };
+    purchase_order_number: { label: string; required: boolean; max_length: number; value?: string };
+    order_type: { label: string; type: string; options: string[]; default?: string };
     comment: { label: string; required: boolean; max_length: number };
   };
   sections: string[];

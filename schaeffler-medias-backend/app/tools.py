@@ -103,7 +103,7 @@ def cart_payload(cart: Cart) -> dict:
     }
 
 
-def checkout_form_payload() -> dict:
+def checkout_form_payload(po_number: str | None = None) -> dict:
     return {
         "component": "CheckoutForm",
         "data": {
@@ -112,11 +112,13 @@ def checkout_form_payload() -> dict:
                     "label": "Purchase order number",
                     "required": True,
                     "max_length": 35,
+                    "value": po_number or "",  # prefilled, editable
                 },
                 "order_type": {
                     "label": "Selected order type",
                     "type": "dropdown",
                     "options": ["Standard", "Express", "Consignment"],
+                    "default": "Standard",
                 },
                 "comment": {
                     "label": "Comment",

@@ -154,6 +154,8 @@ class SessionState:
     quote_id: Optional[str] = None
     order_info: Optional[OrderInfo] = None
     order_id: Optional[str] = None
+    # Prefilled purchase-order number for this order's checkout (e.g. "SCHAMA0001").
+    po_prefill: Optional[str] = None
     # Chat transcript: [{"role": "user"|"assistant", "text": str}, ...] (bounded).
     transcript: list[dict] = field(default_factory=list)
 
